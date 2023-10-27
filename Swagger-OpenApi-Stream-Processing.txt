@@ -1,0 +1,277 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/SERGEYDMITR/InternetStore/1.0.0
+info:
+  description: This is a simple API
+  version: "1.0.0"
+  title: Simple Inventory API
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: users
+    description: Main consumer
+paths:
+  /user-cards:
+    post:
+      tags:
+        - users
+      summary: add user
+      operationId: addUser
+      responses:
+          '201':
+            description: search results matching criteria
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+          '400':
+            description: bad input parameter
+          '409':
+            description: username or all card duplicated
+      
+  /accounts:
+    get:
+      tags:
+        - users
+      summary: searches account
+      operationId: searchInventory
+      description: |
+        By passing in the appropriate options, you can search for
+        available inventory in the system
+      parameters:
+        - in: query
+          name: searchString
+          description: pass an optional search string for looking up inventory
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '400':
+          description: bad input parameter
+    post:
+      tags:
+        - users
+      summary: adds an account
+      operationId: addAccount
+      description: Adds an account to the payment system
+      responses:
+        '201':
+          description: account created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing item already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        description: Inventory item to add
+  /enroll/{accountId}:
+    post:
+      tags:
+        - users
+      summary: add money to account
+      operationId: enroll
+      description: add money
+      parameters:
+        - in: path
+          name: accountId
+          description: place to enroll money
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: money successfully added
+        '400':
+          description: 'invalid input, object invalid'
+        '404':
+          description: account not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoneyMove'
+        description: financial item to add
+  /orders:
+    post:
+      tags:
+        - users
+      summary: create order
+      operationId: createOrder
+      description: idempotent create order for fix intentions
+      responses:
+        '201':
+          description: order successfully created
+        '400':
+          description: 'invalid input, object invalid'
+        '404':
+          description: requested accountId not found
+        '417':
+          description: requested accountId is null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        description: created order
+  /pay/{accountId}:
+    post:
+      tags:
+        - users
+      summary: pay order
+      operationId: pay
+      description: do payment order
+      parameters:
+        - in: path
+          name: accountId
+          description: place to pay from
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successfully operation
+        '409':
+          description: Not enough money
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoneyMove'
+        description: payment money move
+  /notifications:
+    post:
+      tags:
+        - system
+      summary: send notification by email to user
+      operationId: addNotification
+      description: send notification
+      responses:
+        '200':
+          description: successfully operation
+        '500':
+          description: Something bad happen
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        description: Note for client
+components:
+  schemas:
+    Account:
+      type: object
+      required:
+        - accountId
+        - userId
+      properties:
+        accountId:
+          type: integer
+          example: 15
+        userId:
+          type: integer
+          example: 4
+    User:
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - phone
+      properties:
+        id:
+          type: integer
+          example: 4
+        firstName:
+          type: string
+          example: 'Carl'
+        lastName:
+          type: string
+          example: 'McLaud'
+        email:
+          type: string
+          example: 'my.name@host.ru'
+        phone:
+          type: string
+          example: 408-867-5309
+      type: object
+    MoneyMove:
+      type: object
+      required:
+        - moveId
+        - userId
+        - moveDt
+        - direction
+        - operation
+        - accountId
+        - amount
+      properties:
+        moveId:
+          type: integer
+        userId:
+          type: integer
+        moveDt:
+          type: string
+          example: '2023-10-26T14:33:55'
+        direction:
+          type: integer
+          example: 1
+        operation:
+          type: string
+          example: 'replenish'
+        accountId:
+          type: integer
+          example: 15
+        amount:
+          type: number
+          example: 250.00
+    Order:
+      type: object
+      required:
+        - notifiactionId
+        - orderId
+        - userId
+        - message
+      properties:
+        notificationId:
+          type: integer
+        orderId:
+          type: integer
+        userId:
+          type: integer
+        message:
+          type: string
+          description: message text
+          example: 'Successfully payed'
