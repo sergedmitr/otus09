@@ -50,29 +50,34 @@ kubectl apply -f kube-manifest/01_namespace_zipper.yaml
 ```shell
 helm install postgresql-test oci://registry-1.docker.io/bitnamicharts/postgresql --set auth.database=mydb,auth.postgresPassword=secretpassword -n zipper
 ```
-3. Написал свой сервис сохранения заказов на Java (my-order-worker-service)
+3. Написал свой сервис Управление пользователями на Java (my-wsdb-service)
 4. Создал секрет для доступа приложения к БД
 ```shell
 kubectl create secret generic db-password --from-literal=password='secretpassword'
 ```
-4. Установил приложение с помощью Helm в неймспейс zipper.
+5. Установил приложение с помощью Helm в неймспейс zipper.
 ```shell
-helm install order-worker-local myapp/. -n zipper
+helm install wsdb wsdb-helm/. -n zipper --atomic
 ```
-5. Написал 3 вспомогательных микросервиса Payment, Warehouse и Delivery.
-6. Установил их с помощью Helm.
+6. Установил минимальную конфигурацию Kafka в миникуб.
+``` shell
+kubectl apply -f kafka-manifest/.
+```
+(Чтобы кафка заработала пришлось в /etc/hosts добавить строку 192.168.1.191   kafka-broker)
+
+7. Написал 2 вспомогательных микросервиса Payment и Notification.
+8. Установил их с помощью Helm.
 ```shell
-helm install payments paym-helm/. --atomic
-helm install payments wh-helm/. --atomic
-helm install delivery dly-helm/. --atomic
+helm install payments paym-helm/. -n zipper --atomic
+helm install notification notif-helm/. -n zipper --atomic
 ```
-5. Сделал коллекцию postman для проверки предложенного сценария (Otus-Saga-k8s.json)
+9. Сделал коллекцию postman для проверки предложенного сценария (Otus-Saga-k8s.json)
+
 Для тестирования сделал проброс порта:
 ```shell
 kubectl port-forward --namespace nginx-ingress svc/ingress-nginx-controller 8080:80 --address 127.0.0.1,192.168.1.191
 kubectl port-forward --namespace zipper svc/payments-service 8010:8010 --address 127.0.0.1,192.168.1.191
-kubectl port-forward --namespace zipper svc/warehouse-service 8020:8020 --address 127.0.0.1,192.168.1.191
-kubectl port-forward --namespace zipper svc/delivery-service 8030:8030 --address 127.0.0.1,192.168.1.191
+kubectl port-forward --namespace zipper svc/notification-service 8040:8040 --address 127.0.0.1,192.168.1.191
 ```
 ```shell
 newman run Otus-Stream-Processing-k8s.json --verbose
