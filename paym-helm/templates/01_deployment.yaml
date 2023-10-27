@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: {{ include "myapp.fullname" . }}-deployment
+   namespace: {{ .Values.namespace }}
+spec:
+   replicas: {{ .Values.deployment.replicas }}
+   selector:
+      matchLabels:
+         app: {{ include "myapp.fullname" . }}
+   template:
+      metadata:
+         labels:
+            app: {{ include "myapp.fullname" . }}
+      spec:
+         containers:
+            - name: app
+              image: {{ .Values.deployment.appImage }}
+              ports:
+                - name: web
+                  containerPort: {{ .Values.deployment.appPort }}
+              env:
+                - name: DB_URL
+                  valueFrom:
+                     configMapKeyRef:
+                        name: payments-config
+                        key: db_url
+                - name: DB_USER_NAME
+                  valueFrom:
+                     configMapKeyRef:
+                        name: payments-config
+                        key: db_user_name
+                - name: DB_SECRET
+                  valueFrom:
+                     secretKeyRef:
+                        name: db-password
+                        key: password

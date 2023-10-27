@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+   name: {{ include "myapp.fullname" . }}-service
+   namespace: {{ .Values.namespace }}
+   annotations:
+      prometheus.io/path: "/actuator/prometheus"
+      prometheus.io/port: "8080"
+      prometheus.io/scrape: "true"
+spec:
+   selector:
+      app: {{ include "myapp.fullname" . }}
+   ports:
+     - protocol: TCP
+       port: {{ .Values.service.appPort }}
+       targetPort: {{ .Values.deployment.appPort }}
+   type: {{ .Values.service.serviceType }}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: payments-config
+data:
+   db_url: "jdbc:postgresql://postgresql-test:5432/mydb"
+   db_user_name: "postgres"

@@ -1,0 +1,30 @@
+#values
+
+#nginx values
+nginx-ingress:
+  controller:
+    enableSnippets: true
+
+fullnameOverride: my-wsdb
+namespace: zipper
+
+deployment:
+  replicas: 1
+  appImage: sergedmitr/wsdb-demo
+  appVersion: v1
+  appPort: 8000
+
+service:
+  appPort: 8000
+  serviceType: NodePort
+
+ingress:
+  hostname: arch.homework
+  restrictedLocation: /admin
+  restrictedLocationCode: 403
+  restrictedLocationMessage: "Go your own way, Stalker!"
+  workpath: /otusapp/sadmitriev/(.*)
+
+metrics:
+  serviceMonitor:
+    enabled: true

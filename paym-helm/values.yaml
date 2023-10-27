@@ -1,0 +1,30 @@
+#values
+
+#nginx values
+nginx-ingress:
+  controller:
+    enableSnippets: true
+
+fullnameOverride: payments
+namespace: zipper
+
+deployment:
+  replicas: 1
+  appImage: sergedmitr/payments
+  appVersion: v1
+  appPort: 8010
+
+service:
+  appPort: 8010
+  serviceType: NodePort
+
+ingress:
+  hostname: arch.homework
+  restrictedLocation: /admin
+  restrictedLocationCode: 403
+  restrictedLocationMessage: "Go your own way, Stalker!"
+  workpath: /otusapp/sadmitriev/(.*)
+
+metrics:
+  serviceMonitor:
+    enabled: true
